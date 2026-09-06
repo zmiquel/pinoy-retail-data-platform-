@@ -11,10 +11,10 @@ __pycache__/
 .vscode/
 .idea/
 
-# Raw source data
+# Generated / source data
 data/raw/
+data/adapted/
 
 # OS
 .DS_Store
 Thumbs.db
-
