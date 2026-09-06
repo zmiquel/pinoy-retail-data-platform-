@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 from pathlib import Path
 
 
@@ -47,8 +48,6 @@ sales["country"] = "PH"
 invoice_hashes = pd.util.hash_pandas_object(
     sales["invoice_no"].astype("string"), index=False
 )
-sales["store_id"] = "PH-STORE-" + (invoice_hashes % 10 + 1).astype(str).str.zfill(3)
-
 
 sales["currency"] = "PHP"
 sales["sales_channel"] = "online"
@@ -62,6 +61,81 @@ sales["payment_method"] = (invoice_hashes % 3).map(
 # -----------------------------
 
 sales["line_total"] = sales["quantity"] * sales["unit_price"]
+
+
+# -----------------------------
+# Generate store master
+# -----------------------------
+
+stores = pd.DataFrame(
+    [
+        {
+            "store_id": "STR001",
+            "store_name": "Seven Evelyn - Calamba",
+            "city": "Calamba",
+            "province": "Laguna",
+            "region": "CALABARZON",
+            "country_code": "PH",
+        },
+        {
+            "store_id": "STR002",
+            "store_name": "Tipid Tindahan - Batangas",
+            "city": "Batangas City",
+            "province": "Batangas",
+            "region": "CALABARZON",
+            "country_code": "PH",
+        },
+        {
+            "store_id": "STR003",
+            "store_name": "Ate Tess Mini Mart",
+            "city": "Lipa",
+            "province": "Batangas",
+            "region": "CALABARZON",
+            "country_code": "PH",
+        },
+        {
+            "store_id": "STR004",
+            "store_name": "Kuya Jun's Store",
+            "city": "Calamba",
+            "province": "Laguna",
+            "region": "CALABARZON",
+            "country_code": "PH",
+        },
+        {
+            "store_id": "STR005",
+            "store_name": "Suking Tindahan",
+            "city": "Santa Rosa",
+            "province": "Laguna",
+            "region": "CALABARZON",
+            "country_code": "PH",
+        },
+    ]
+)
+
+stores.to_csv(
+    OUTPUT_DIR.parent / "stores.csv",
+    index=False
+)
+
+# -----------------------------
+# Assign store per invoice
+# -----------------------------
+
+invoice_store = pd.DataFrame({
+    "invoice_no": sales["invoice_no"].unique()
+})
+
+invoice_store["store_id"] = np.random.choice(
+    stores["store_id"],
+    size=len(invoice_store)
+)
+
+sales = sales.merge(
+    invoice_store,
+    on="invoice_no",
+    how="left"
+)
+
 
 
 # -----------------------------
