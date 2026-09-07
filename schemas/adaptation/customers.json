@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "schemas/adaptation/customers.json",
+  "title": "Customer Master",
+  "description": "Synthetic customer master generated from UCI Online Retail CustomerID values.",
+  "type": "object",
+  "properties": {
+    "customer_id": {
+      "description": "Customer identifier preserved from the UCI Online Retail dataset.",
+      "type": "integer"
+    },
+    "customer_name": {
+      "description": "Synthetic Filipino customer name.",
+      "type": "string",
+      "minLength": 1
+    },
+    "email": {
+      "description": "Synthetic customer email address.",
+      "type": "string",
+      "format": "email"
+    },
+    "city": {
+      "description": "Synthetic customer city based on a controlled Philippine location set.",
+      "type": "string",
+      "minLength": 1
+    },
+    "province": {
+      "description": "Philippine province associated with the customer city.",
+      "type": "string",
+      "minLength": 1
+    },
+    "region": {
+      "description": "Philippine region associated with the customer location.",
+      "type": "string",
+      "minLength": 1
+    },
+    "country_code": {
+      "description": "ISO-style country code for the adapted source.",
+      "type": "string",
+      "const": "PH"
+    }
+  },
+  "required": [
+    "customer_id",
+    "customer_name",
+    "email",
+    "city",
+    "province",
+    "region",
+    "country_code"
+  ],
+  "additionalProperties": false
+}
