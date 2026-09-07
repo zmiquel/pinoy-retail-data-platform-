@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 from pathlib import Path
-
+import random
 
 # -----------------------------
 # config
@@ -136,7 +136,174 @@ sales = sales.merge(
     how="left"
 )
 
+# -----------------------------
+# Generate synthetic customer names
+# -----------------------------
+# Get unique customers from the adapted sales data
+customer_ids = (
+    sales["customer_id"]
+    .dropna()
+    .unique()
+)
 
+customers = pd.DataFrame({
+    "customer_id": customer_ids
+})
+# -----------------------------
+# Generate synthetic customer names
+# -----------------------------
+
+first_names = [
+    "Juan", "Maria", "Jose", "Ana", "Carlo",
+    "Miguel", "Sofia", "Mark", "Angela", "Paolo",
+    "Kevin", "Nicole", "Daniel", "Christine", "Rafael",
+    "Gabriel", "Andrea", "Joshua", "Patricia", "Christian",
+    "Jerome", "Camille", "Francis", "Jasmine", "Nathan",
+    "Bianca", "Adrian", "Clarisse", "Enrique", "Monica",
+    "Anthony", "Beatrice", "Dominic", "Elaine", "Felix",
+    "Hannah", "Ivan", "Julia", "Kyle", "Leah",
+]
+
+middle_names = [
+    "Andres", "Antonio", "Benito", "Cesar", "Emilio",
+    "Fernando", "Isabel", "Lorenzo", "Manuel", "Ramon",
+    "Rico", "Roberto", "Samuel", "Teresa", "Victoria",
+]
+
+last_names = [
+    "Santos", "Dela Cruz", "Reyes", "Garcia", "Mendoza",
+    "Bautista", "Navarro", "Castillo", "Ramos", "Aquino",
+    "Cruz", "Torres", "Villanueva", "Flores", "Gonzales",
+    "Rivera", "Fernandez", "Manalo", "Mercado", "Salazar",
+    "Magsaysay", "Valdez", "Santiago", "Aguilar", "Pascual",
+    "Diaz", "Soriano", "Domingo", "Del Rosario", "Francisco",
+]
+
+# Create unique name combinations
+name_pool = [
+    f"{first} {middle} {last}"
+    for first in first_names
+    for middle in middle_names
+    for last in last_names
+]
+
+# Randomize, but keep results reproducible
+random.seed(42)
+random.shuffle(name_pool)
+
+# Make sure we have enough names
+if len(customers) > len(name_pool):
+    raise ValueError(
+        f"Not enough unique customer names. "
+        f"Need {len(customers)}, "
+        f"but only {len(name_pool)} available."
+    )
+
+# Assign unique names
+customers["customer_name"] = name_pool[:len(customers)]
+customers["n_for_email"] = customers["customer_name"].str.split().str[0] + "." + customers["customer_name"].str.split().str[-1]
+# Synthetic email based on customer ID
+customers["email"] = (
+    "c-" + customers["n_for_email"]
+    + customers["customer_id"].astype(int).astype(str)
+    + "@example.com"
+)
+customers = customers.drop(columns=["n_for_email"])
+# Valid Philippine location combinations
+locations = [
+    {
+        "city": "Calamba",
+        "province": "Laguna",
+        "region": "CALABARZON",
+        "country_code": "PH",
+    },
+    {
+        "city": "Santa Rosa",
+        "province": "Laguna",
+        "region": "CALABARZON",
+        "country_code": "PH",
+    },
+    {
+        "city": "Biñan",
+        "province": "Laguna",
+        "region": "CALABARZON",
+        "country_code": "PH",
+    },
+    {
+        "city": "Cabuyao",
+        "province": "Laguna",
+        "region": "CALABARZON",
+        "country_code": "PH",
+    },
+    {
+        "city": "Lipa",
+        "province": "Batangas",
+        "region": "CALABARZON",
+        "country_code": "PH",
+    },
+    {
+        "city": "Batangas City",
+        "province": "Batangas",
+        "region": "CALABARZON",
+        "country_code": "PH",
+    },
+    {
+        "city": "Tanauan",
+        "province": "Batangas",
+        "region": "CALABARZON",
+        "country_code": "PH",
+    },
+    {
+        "city": "Imus",
+        "province": "Cavite",
+        "region": "CALABARZON",
+        "country_code": "PH",
+    },
+    {
+        "city": "Dasmariñas",
+        "province": "Cavite",
+        "region": "CALABARZON",
+        "country_code": "PH",
+    },
+    {
+        "city": "Bacoor",
+        "province": "Cavite",
+        "region": "CALABARZON",
+        "country_code": "PH",
+    },
+]
+
+# Assign complete location records to customers
+customer_locations = [
+    locations[i % len(locations)]
+    for i in range(len(customers))
+]
+
+customers["city"] = [
+    location["city"]
+    for location in customer_locations
+]
+
+customers["province"] = [
+    location["province"]
+    for location in customer_locations
+]
+
+customers["region"] = [
+    location["region"]
+    for location in customer_locations
+]
+
+customers["country_code"] = [
+    location["country_code"]
+    for location in customer_locations
+]
+
+# Save customer master
+customers.to_csv(
+    OUTPUT_DIR.parent / "customers.csv",
+    index=False
+)
 
 # -----------------------------
 # Output
