@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "schemas/adaptation/stores.json",
+  "title": "Store Master",
+  "description": "Synthetic Philippine store master generated for the adapted retail source.",
+  "type": "object",
+  "properties": {
+    "store_id": {
+      "description": "Synthetic store identifier generated because the source dataset does not contain a store identifier.",
+      "type": "string",
+      "pattern": "^STR[0-9]{3}$"
+    },
+    "store_name": {
+      "description": "Synthetic Filipino retail store name.",
+      "type": "string",
+      "minLength": 1
+    },
+    "city": {
+      "description": "City where the synthetic store is located.",
+      "type": "string",
+      "minLength": 1
+    },
+    "province": {
+      "description": "Province associated with the store city.",
+      "type": "string",
+      "minLength": 1
+    },
+    "region": {
+      "description": "Philippine region associated with the store location.",
+      "type": "string",
+      "minLength": 1
+    },
+    "country_code": {
+      "description": "Country code for the adapted source.",
+      "type": "string",
+      "const": "PH"
+    }
+  },
+  "required": [
+    "store_id",
+    "store_name",
+    "city",
+    "province",
+    "region",
+    "country_code"
+  ],
+  "additionalProperties": false
+}

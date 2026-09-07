@@ -1,0 +1,96 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "schemas/adaptation/sales.json",
+  "title": "Sales Transaction",
+  "description": "Adapted sales transaction schema derived from the UCI Online Retail dataset.",
+  "type": "object",
+  "properties": {
+    "invoice_no": {
+      "description": "Invoice or transaction identifier. Values beginning with C represent cancellations in the source dataset.",
+      "type": "string",
+      "minLength": 1
+    },
+    "stock_code": {
+      "description": "Product identifier preserved from the source dataset.",
+      "type": "string",
+      "minLength": 1
+    },
+    "description": {
+      "description": "Product description from the source dataset.",
+      "type": "string"
+    },
+    "quantity": {
+      "description": "Number of units in the transaction line.",
+      "type": "integer"
+    },
+    "invoice_date": {
+      "description": "Date and time when the invoice was created.",
+      "type": "string",
+      "format": "date-time"
+    },
+    "unit_price": {
+      "description": "Unit price recorded on the transaction line.",
+      "type": "number",
+      "minimum": 0
+    },
+    "customer_id": {
+      "description": "Customer identifier preserved from the UCI CustomerID field.",
+      "type": [
+        "integer",
+        "null"
+      ]
+    },
+    "country": {
+      "description": "Country value in the adapted source.",
+      "type": "string",
+      "const": "PH"
+    },
+    "currency": {
+      "description": "Currency used by the adapted Philippine source.",
+      "type": "string",
+      "const": "PHP"
+    },
+    "sales_channel": {
+      "description": "Synthetic sales channel assigned during adaptation.",
+      "type": "string",
+      "enum": [
+        "online",
+        "retail"
+      ]
+    },
+    "payment_method": {
+      "description": "Synthetic payment method assigned during adaptation.",
+      "type": "string",
+      "enum": [
+        "cash",
+        "card",
+        "gcash"
+      ]
+    },
+    "line_total": {
+      "description": "Derived transaction line amount calculated as quantity multiplied by unit price.",
+      "type": "number"
+    },
+    "store_id": {
+      "description": "Synthetic store identifier assigned at invoice level.",
+      "type": "string",
+      "pattern": "^STR[0-9]{3}$"
+    }
+  },
+  "required": [
+    "invoice_no",
+    "stock_code",
+    "description",
+    "quantity",
+    "invoice_date",
+    "unit_price",
+    "customer_id",
+    "country",
+    "currency",
+    "sales_channel",
+    "payment_method",
+    "line_total",
+    "store_id"
+  ],
+  "additionalProperties": false
+}

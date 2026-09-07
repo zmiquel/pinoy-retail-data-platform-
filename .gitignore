@@ -1,0 +1,20 @@
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+
+# Environment / secrets
+.env
+.env.*
+
+# IDE
+.vscode/
+.idea/
+
+# Generated / source data
+data/raw/
+data/adapted/
+
+# OS
+.DS_Store
+Thumbs.db

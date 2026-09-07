@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "schemas/adaptation/products.json",
+  "title": "Product Master",
+  "description": "Product master generated from UCI Online Retail StockCode and Description values.",
+  "type": "object",
+  "properties": {
+    "stock_code": {
+      "description": "Product identifier preserved from the UCI Online Retail dataset.",
+      "type": "string",
+      "minLength": 1
+    },
+    "product_name": {
+      "description": "Product description from the source dataset.",
+      "type": "string",
+      "minLength": 1
+    },
+    "category": {
+      "description": "Synthetic high-level product category assigned through adaptation rules.",
+      "type": "string",
+      "minLength": 1
+    },
+    "subcategory": {
+      "description": "Synthetic product subcategory assigned through adaptation rules.",
+      "type": "string",
+      "minLength": 1
+    },
+    "brand": {
+      "description": "Synthetic brand assigned during source adaptation.",
+      "type": "string",
+      "minLength": 1
+    },
+    "currency": {
+      "description": "Currency used by the adapted Philippine source.",
+      "type": "string",
+      "const": "PHP"
+    }
+  },
+  "required": [
+    "stock_code",
+    "product_name",
+    "category",
+    "subcategory",
+    "brand",
+    "currency"
+  ],
+  "additionalProperties": false
+}
