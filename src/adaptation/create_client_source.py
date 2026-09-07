@@ -305,6 +305,173 @@ customers.to_csv(
     index=False
 )
 
+
+# -----------------------------
+# Generate product master
+# -----------------------------
+
+# Get unique products from adapted sales data
+products = (
+    sales[
+        ["stock_code", "description"]
+    ]
+    .dropna(subset=["stock_code"])
+    .drop_duplicates(subset=["stock_code"])
+    .copy()
+)
+
+# Clean product name
+products["product_name"] = (
+    products["description"]
+    .fillna("Unknown Product")
+    .str.strip()
+)
+
+# -----------------------------
+# Product categorization
+# -----------------------------
+
+def categorize_product(product_name):
+    name = product_name.upper()
+
+    if any(keyword in name for keyword in [
+        "CANDLE",
+        "LIGHT",
+        "LAMP",
+        "HOLDER",
+        "DECOR",
+        "HEART",
+        "ORNAMENT",
+        "FRAME",
+    ]):
+        return "Home & Living", "Home Decor"
+
+    if any(keyword in name for keyword in [
+        "MUG",
+        "CUP",
+        "PLATE",
+        "BOWL",
+        "GLASS",
+        "SPOON",
+        "FORK",
+        "KITCHEN",
+    ]):
+        return "Home & Living", "Kitchen & Dining"
+
+    if any(keyword in name for keyword in [
+        "BAG",
+        "PURSE",
+        "WALLET",
+        "SHOPPER",
+        "TOTE",
+    ]):
+        return "Fashion & Accessories", "Bags & Accessories"
+
+    if any(keyword in name for keyword in [
+        "NECKLACE",
+        "BRACELET",
+        "EARRING",
+        "RING",
+        "JEWEL",
+    ]):
+        return "Fashion & Accessories", "Jewelry"
+
+    if any(keyword in name for keyword in [
+        "TOY",
+        "GAME",
+        "DOLL",
+        "CHILDREN",
+        "CHILD",
+    ]):
+        return "Toys & Hobbies", "Toys"
+
+    if any(keyword in name for keyword in [
+        "BOOK",
+        "CARD",
+        "PAPER",
+        "NOTEBOOK",
+        "PENCIL",
+        "PEN",
+    ]):
+        return "Stationery & Gifts", "Stationery"
+
+    if any(keyword in name for keyword in [
+        "CHRISTMAS",
+        "XMAS",
+        "EASTER",
+        "HALLOWEEN",
+    ]):
+        return "Seasonal", "Holiday Items"
+
+    if any(keyword in name for keyword in [
+        "SOAP",
+        "PERFUME",
+        "COSMETIC",
+        "BEAUTY",
+        "CREAM",
+    ]):
+        return "Personal Care", "Beauty & Personal Care"
+
+    return "General Merchandise", "Other"
+
+
+# Apply category rules
+products[["category", "subcategory"]] = (
+    products["product_name"]
+    .apply(categorize_product)
+    .apply(pd.Series)
+)
+
+# -----------------------------
+# Synthetic brands
+# -----------------------------
+
+brands = [
+    "Casa Lokal",
+    "Bayan Finds",
+    "Lokal Living",
+    "Isla Home",
+    "Pinoy Essentials",
+    "Tahanan Co.",
+    "Munting Tindahan",
+    "Sari Goods",
+]
+
+products["brand"] = [
+    brands[i % len(brands)]
+    for i in range(len(products))
+]
+
+# Currency used by adapted Philippine source
+products["currency"] = "PHP"
+
+# Keep final product schema
+products = products[
+    [
+        "stock_code",
+        "product_name",
+        "category",
+        "subcategory",
+        "brand",
+        "currency",
+    ]
+]
+
+# -----------------------------
+# Validation
+# -----------------------------
+
+assert products["stock_code"].is_unique
+assert products["product_name"].notna().all()
+
+# Save product master
+products.to_csv(
+    OUTPUT_DIR.parent / "products.csv",
+    index=False
+)
+
+print(f"Generated {len(products)} products")
+
 # -----------------------------
 # Output
 # -----------------------------
