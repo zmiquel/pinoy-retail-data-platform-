@@ -27,7 +27,7 @@ def transform_sales(sales_df: DataFrame) -> DataFrame:
         .withColumn("invoice_date", F.col("invoice_date").cast(TimestampType()))
         .withColumn("unit_price", F.col("unit_price").cast(DecimalType(12, 2)))
         .withColumn("customer_id", F.col("customer_id").cast(IntegerType()))
-        .withColumn("line_total", F.col("line_total").cast(DecimalType(14, 2)))
+        .withColumn("gross_sales", F.col("line_total").cast(DecimalType(14, 2)))
         .withColumn(
             "status",
             F.when(
@@ -35,8 +35,15 @@ def transform_sales(sales_df: DataFrame) -> DataFrame:
                 F.lit("CANCELLED")
             ).otherwise(F.lit("COMPLETED"))
         )
+        .withColumn(
+            "net_sales",
+            F.when(
+                F.col("status") == "COMPLETED",
+                F.col("gross_sales")
+            ).otherwise(F.lit(0).cast(DecimalType(14, 2)))
+        )
     )
-
+    
     sales_df = sales_df.select(
         "invoice_no",
         "stock_code",
@@ -46,7 +53,8 @@ def transform_sales(sales_df: DataFrame) -> DataFrame:
         "quantity",
         "invoice_date",
         "unit_price",
-        "line_total",
+        "gross_sales",
+        "net_sales",
         "country",
         "currency",
         "sales_channel",
