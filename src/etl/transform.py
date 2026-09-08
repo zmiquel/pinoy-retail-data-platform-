@@ -116,6 +116,49 @@ def transform_stores(stores_df: DataFrame) -> DataFrame:
 
     return stores_df
 
+def create_denormalized_sales(
+    sales_df: DataFrame,
+    customers_df: DataFrame,
+    products_df: DataFrame,
+    stores_df: DataFrame,
+) -> DataFrame:
+    """Enrich sales data with customer, product, and store attributes."""
+
+    customers = customers_df.select(
+        "customer_id",
+        "customer_name",
+        F.col("city").alias("customer_city"),
+        F.col("province").alias("customer_province"),
+        F.col("region").alias("customer_region"),
+        "country_code",
+    )
+
+    products = products_df.select(
+        "stock_code",
+        "product_name",
+        "category",
+        "subcategory",
+        "brand",
+    )
+
+    stores = stores_df.select(
+        "store_id",
+        "store_name",
+        F.col("city").alias("store_city"),
+        F.col("province").alias("store_province"),
+        F.col("region").alias("store_region"),
+        F.col("country_code").alias("store_country_code"),
+    )
+
+    denormalized_sales_df = (
+        sales_df
+        .join(customers, on="customer_id", how="left")
+        .join(products, on="stock_code", how="left")
+        .join(stores, on="store_id", how="left")
+    )
+
+    return denormalized_sales_df
+
 if __name__ == "__main__":
     from extract import create_spark_session, extract_source_data
 
@@ -128,7 +171,25 @@ if __name__ == "__main__":
     products_df = transform_products(data["products"])
     stores_df = transform_stores(data["stores"])
 
-    sales_df.printSchema()
-    sales_df.show(10, truncate=False)
+    denormalized_sales_df = create_denormalized_sales(
+        sales_df,
+        customers_df,
+        products_df,
+        stores_df,
+    )
 
+    print("Sales rows:", sales_df.count())
+    print("Denormalized sales rows:", denormalized_sales_df.count())
+
+    denormalized_sales_df.printSchema()
+    denormalized_sales_df.show(10, truncate=False)
+    
+    print("Customers:", customers_df.count())
+    print("Unique customer IDs:", customers_df.select("customer_id").distinct().count())
+
+    print("Products:", products_df.count())
+    print("Unique stock codes:", products_df.select("stock_code").distinct().count())
+
+    print("Stores:", stores_df.count())
+    print("Unique store IDs:", stores_df.select("store_id").distinct().count())
     spark.stop()
