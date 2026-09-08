@@ -159,6 +159,53 @@ def create_denormalized_sales(
 
     return denormalized_sales_df
 
+
+def validate_sales(sales_df: DataFrame) -> tuple[DataFrame, DataFrame]:
+    """Validate transformed sales and separate valid and invalid records."""
+
+    validation_error = F.when(
+        F.col("invoice_no").isNull(),
+        F.lit("Missing invoice_no")
+    ).when(
+        F.col("stock_code").isNull(),
+        F.lit("Missing stock_code")
+    ).when(
+        F.col("store_id").isNull(),
+        F.lit("Missing store_id")
+    ).when(
+        F.col("product_name").isNull(),
+        F.lit("Missing product")
+    ).when(
+        ~F.col("status").isin("COMPLETED", "CANCELLED"),
+        F.lit("Invalid status")
+    ).when(
+        (
+            (F.col("status") == "CANCELLED") &
+            (F.col("net_sales") != 0)
+        ) |
+        (
+            (F.col("status") == "COMPLETED") &
+            (F.col("net_sales") != F.col("gross_sales"))
+        ),
+        F.lit("Invalid net_sales")
+    )
+
+    validated_df = sales_df.withColumn(
+        "validation_error",
+        validation_error
+    )
+
+    valid_sales_df = validated_df.filter(
+        F.col("validation_error").isNull()
+    ).drop("validation_error")
+
+    invalid_sales_df = validated_df.filter(
+        F.col("validation_error").isNotNull()
+    )
+
+    return valid_sales_df, invalid_sales_df
+
+
 if __name__ == "__main__":
     from extract import create_spark_session, extract_source_data
 
@@ -178,18 +225,23 @@ if __name__ == "__main__":
         stores_df,
     )
 
-    print("Sales rows:", sales_df.count())
-    print("Denormalized sales rows:", denormalized_sales_df.count())
+    valid_sales_df, invalid_sales_df = validate_sales(
+        denormalized_sales_df
+    )
 
-    denormalized_sales_df.printSchema()
-    denormalized_sales_df.show(10, truncate=False)
+    print("Original:", denormalized_sales_df.count())
+    print("Valid:", valid_sales_df.count())
+    print("Invalid:", invalid_sales_df.count())
+
+    invalid_sales_df.select(
+        "invoice_no",
+        "stock_code",
+        "store_id",
+        "product_name",
+        "status",
+        "gross_sales",
+        "net_sales",
+        "validation_error",
+    ).show(20, truncate=False)
     
-    print("Customers:", customers_df.count())
-    print("Unique customer IDs:", customers_df.select("customer_id").distinct().count())
-
-    print("Products:", products_df.count())
-    print("Unique stock codes:", products_df.select("stock_code").distinct().count())
-
-    print("Stores:", stores_df.count())
-    print("Unique store IDs:", stores_df.select("store_id").distinct().count())
     spark.stop()
